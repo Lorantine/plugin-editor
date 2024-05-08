@@ -438,6 +438,12 @@ void SystemEditor::RenderSystem()
 	object->extraHyperArrivalDistance = arrival[0];
 	object->extraJumpArrivalDistance = fabs(arrival[1]);
 
+	double departure[2] = { object->hyperDepartureDistance, object->jumpDepartureDistance};
+	if (ImGui::InputDouble2Ex("departure", departure))
+		SetDirty();
+	object->hyperDepartureDistance = departure[0];
+	object->jumpDepartureDistance = fabs(departure[1]);
+
 	if(ImGui::TreeNode("attributes"))
 	{
 		set<string> toAdd;
@@ -1124,6 +1130,23 @@ void SystemEditor::WriteToFile(DataWriter &writer, const System *system) const
 				writer.Write("link", system->extraHyperArrivalDistance);
 			if((!diff && system->extraJumpArrivalDistance) || system->extraJumpArrivalDistance != diff->extraJumpArrivalDistance)
 				writer.Write("jump", system->extraJumpArrivalDistance);
+			writer.EndChild();
+		}
+	}
+	if (!diff || system->hyperDepartureDistance != diff->hyperDepartureDistance
+		|| system->jumpDepartureDistance != diff->jumpDepartureDistance)
+	{
+		if (system->hyperDepartureDistance == system->jumpDepartureDistance
+			&& (diff || system->hyperDepartureDistance))
+			writer.Write("departure", system->hyperDepartureDistance);
+		else if (system->hyperDepartureDistance != system->jumpDepartureDistance)
+		{
+			writer.Write("departure");
+			writer.BeginChild();
+			if ((!diff && system->hyperDepartureDistance) || system->hyperDepartureDistance != diff->hyperDepartureDistance)
+				writer.Write("link", system->hyperDepartureDistance);
+			if ((!diff && system->jumpDepartureDistance) || system->jumpDepartureDistance != diff->jumpDepartureDistance)
+				writer.Write("jump", system->jumpDepartureDistance);
 			writer.EndChild();
 		}
 	}
